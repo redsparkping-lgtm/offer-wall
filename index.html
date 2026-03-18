@@ -1,8 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Offer Wall</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#search {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+/* CATEGORY BLOCK */
+.category {
+    margin-bottom: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #1e293b;
+}
+
+/* HEADER */
+.category-header {
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #334155;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.category-header:hover {
+    background: #475569;
+}
+
+/* CONTENT */
+.category-content {
+    display: none;
+    padding: 15px;
+}
+
+/* OFFER ITEM */
+.offer {
+    padding: 12px;
+    border-bottom: 1px solid #334155;
+}
+
+.offer:last-child {
+    border-bottom: none;
+}
+
+.label {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.payout {
+    color: #22c55e;
+    font-weight: bold;
+}
+
+a {
+    color: #38bdf8;
+    text-decoration: none;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🔥 Offer Wall</h1>
+
+<input type="text" id="search" placeholder="Search offers...">
+
+<div id="offers"></div>
+
 <script>
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRumI4oP83FrT13OLris4jnzpz8VuLtCvkZDcTlb9364hTvdruRWTthnyOb0o9VfiyzLvXgFiUgBtrQ/pub?gid=0&single=true&output=csv";
 
 let allData = [];
 
+// FETCH DATA
 fetch(sheetURL)
 .then(res => res.text())
 .then(data => {
@@ -35,7 +130,7 @@ fetch(sheetURL)
 });
 
 
-// ✅ CATEGORY GROUPED RENDER
+// RENDER CATEGORY + OFFERS
 function renderData(data) {
     const container = document.getElementById("offers");
 
@@ -54,26 +149,22 @@ function renderData(data) {
 
         html += `
         <div class="category">
-            <div class="category-title">🔥 ${category}</div>
-            <div class="container">
+            <div class="category-header" onclick="toggleCategory(this)">
+                ${category} (${grouped[category].length})
+                <span>+</span>
+            </div>
+
+            <div class="category-content">
         `;
 
         grouped[category].forEach(offer => {
             html += `
-            <div class="card">
-                <div class="title">${offer.name}</div>
-
-                <div class="label">Offer ID</div>
-                <div>${offer.id}</div>
-
-                <div class="label">Payout</div>
-                <div class="payout">$${offer.payout}</div>
-
-                <div class="label">GEO</div>
-                <div>${offer.geo}</div>
-
-                <div class="label">Preview</div>
-                <a href="${offer.link}" target="_blank">View Offer</a>
+            <div class="offer">
+                <div><span class="label">Offer Name:</span> ${offer.name}</div>
+                <div><span class="label">Offer ID:</span> ${offer.id}</div>
+                <div><span class="label">Payout:</span> <span class="payout">$${offer.payout}</span></div>
+                <div><span class="label">Preview Link:</span> <a href="${offer.link}" target="_blank">View Offer</a></div>
+                <div><span class="label">Countries or GEOs:</span> ${offer.geo}</div>
             </div>
             `;
         });
@@ -85,7 +176,22 @@ function renderData(data) {
 }
 
 
-// ✅ SEARCH
+// TOGGLE CATEGORY
+function toggleCategory(el) {
+    const content = el.nextElementSibling;
+    const icon = el.querySelector("span");
+
+    if (content.style.display === "block") {
+        content.style.display = "none";
+        icon.innerText = "+";
+    } else {
+        content.style.display = "block";
+        icon.innerText = "−";
+    }
+}
+
+
+// SEARCH FUNCTION
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase();
 
@@ -98,3 +204,6 @@ document.getElementById("search").addEventListener("input", function() {
     renderData(filtered);
 });
 </script>
+
+</body>
+</html>
