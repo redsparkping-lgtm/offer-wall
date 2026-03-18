@@ -108,8 +108,15 @@ const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRumI4oP83FrT1
 function getGyazoImage(url) {
     if (!url) return "";
 
+    // Clean URL
+    url = url.trim();
+
+    // Handle Gyazo links
     if (url.includes("gyazo.com")) {
-        const id = url.split("/").pop().split("?")[0];
+        let id = url.split("/").pop();
+        id = id.split("?")[0];
+
+        // Try multiple formats (Gyazo sometimes varies)
         return "https://i.gyazo.com/" + id + ".png";
     }
 
@@ -148,9 +155,9 @@ fetch(sheetURL)
             <div class="title">${offerName}</div>
 
             <div class="preview">
-                <img src="${previewImage}" 
-                     onerror="this.src='https://via.placeholder.com/600x300?text=No+Preview'">
-            </div>
+    <img src="${previewImage}" 
+         onerror="this.onerror=null; this.src='https://image.thum.io/get/width/600/crop/400/' + encodeURIComponent('${preview}');">
+</div>
 
             <div class="label">Offer ID</div>
             <div class="value">${offerID}</div>
