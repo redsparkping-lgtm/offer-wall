@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Offer Wall</title>
+
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -11,88 +12,144 @@ body {
     margin: 0;
     padding: 20px;
 }
+
 h1 {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
+
+#search {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
 .container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
 }
+
 .card {
     background: #1e293b;
     border-radius: 12px;
     padding: 20px;
     transition: 0.3s;
 }
+
 .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
+
 .title {
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 10px;
 }
+
 .payout {
     color: #22c55e;
     font-weight: bold;
 }
+
 .label {
     font-size: 12px;
     opacity: 0.7;
 }
+
 a {
     color: #38bdf8;
     text-decoration: none;
 }
 </style>
+
 </head>
 <body>
 
 <h1>🔥 Offer Wall</h1>
+
+<input type="text" id="search" placeholder="Search offers...">
 
 <div class="container" id="offers"></div>
 
 <script>
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRumI4oP83FrT13OLris4jnzpz8VuLtCvkZDcTlb9364hTvdruRWTthnyOb0o9VfiyzLvXgFiUgBtrQ/pub?gid=0&single=true&output=csv";
 
+let allData = [];
+
 fetch(sheetURL)
 .then(res => res.text())
 .then(data => {
     const rows = data.split("\n").slice(1);
 
+    allData = rows.map(row => {
+        if (!row.trim()) return null;
+
+        const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+
+        return {
+            category: cols[0],
+            id: cols[1],
+            name: cols[2],
+            payout: cols[3],
+            link: cols[4],
+            traffic: cols[5],
+            geo: cols[6]
+        };
+    }).filter(Boolean);
+
+    renderData(allData);
+});
+
+// Render function
+function renderData(data) {
     const container = document.getElementById("offers");
+    let html = "";
 
-    rows.forEach(row => {
-        const cols = row.split(",");
-
-        const card = `
+    data.forEach(offer => {
+        html += `
         <div class="card">
-            <div class="title">${cols[2]}</div>
+            <div class="title">${offer.name}</div>
+
             <div class="label">Offer ID</div>
-            <div>${cols[1]}</div>
+            <div>${offer.id}</div>
 
             <div class="label">Category</div>
-            <div>${cols[0]}</div>
+            <div>${offer.category}</div>
 
             <div class="label">Payout</div>
-            <div class="payout">$${cols[3]}</div>
+            <div class="payout">$${offer.payout}</div>
 
             <div class="label">GEO</div>
-            <div>${cols[6]}</div>
+            <div>${offer.geo}</div>
 
             <div class="label">Allowed Traffic</div>
-            <div>${cols[5]}</div>
+            <div>${offer.traffic}</div>
 
             <div class="label">Preview</div>
-            <a href="${cols[4]}" target="_blank">View Offer</a>
+            <a href="${offer.link}" target="_blank">View Offer</a>
         </div>
         `;
-
-        container.innerHTML += card;
     });
+
+    container.innerHTML = html;
+}
+
+// Search functionality
+document.getElementById("search").addEventListener("input", function() {
+    const value = this.value.toLowerCase();
+
+    const filtered = allData.filter(offer =>
+        offer.name.toLowerCase().includes(value) ||
+        offer.id.toLowerCase().includes(value) ||
+        offer.geo.toLowerCase().includes(value)
+    );
+
+    renderData(filtered);
 });
 </script>
 
