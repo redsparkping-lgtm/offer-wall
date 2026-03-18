@@ -84,21 +84,29 @@ let allData = [];
 fetch(sheetURL)
 .then(res => res.text())
 .then(data => {
-    const rows = data.split("\n").slice(1);
+    const rows = data.split("\n");
+    
+    const headers = rows[0].split(",").map(h => h.trim());
 
-    allData = rows.map(row => {
+    allData = rows.slice(1).map(row => {
         if (!row.trim()) return null;
 
         const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
 
+        let obj = {};
+
+        headers.forEach((header, index) => {
+            obj[header] = cols[index];
+        });
+
         return {
-            category: cols[0],
-            id: cols[1],
-            name: cols[2],
-            payout: cols[3],
-            link: cols[4],
-            traffic: cols[5],
-            geo: cols[6]
+            category: obj["Category Name"] || "Other",
+            id: obj["Offer ID"],
+            name: obj["Offer Name"],
+            payout: obj["Payout"],
+            link: obj["Preview Link"],
+            traffic: obj["Allowed Traffic"],
+            geo: obj["Countries or GEOs"]
         };
     }).filter(Boolean);
 
