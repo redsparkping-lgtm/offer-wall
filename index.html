@@ -15,53 +15,35 @@ body {
 
 h1 {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 
-#search {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: none;
-    margin-bottom: 20px;
-    font-size: 14px;
-}
-
-/* CATEGORY */
 .category {
     margin-bottom: 20px;
     border-radius: 10px;
     overflow: hidden;
-    background: #1e293b;
+    border: 1px solid #334155;
 }
 
 .category-header {
+    background: #1e293b;
     padding: 15px;
-    font-size: 18px;
-    font-weight: bold;
     cursor: pointer;
-    background: #334155;
-    display: flex;
-    justify-content: space-between;
-}
-
-.category-header:hover {
-    background: #475569;
+    font-size: 20px;
+    font-weight: bold;
 }
 
 .category-content {
     display: none;
     padding: 15px;
+    background: #020617;
 }
 
-/* OFFER */
-.offer {
+.card {
+    background: #1e293b;
+    border-radius: 10px;
     padding: 15px;
-    border-bottom: 1px solid #334155;
-}
-
-.offer:last-child {
-    border-bottom: none;
+    margin-bottom: 15px;
 }
 
 .title {
@@ -70,24 +52,13 @@ h1 {
     margin-bottom: 10px;
 }
 
-.label {
-    font-size: 13px;
-    opacity: 0.8;
-}
-
-.offer div {
-    margin-bottom: 6px;
-}
-
-.payout {
-    color: #22c55e;
-    font-weight: bold;
-    font-size: 16px;
-}
-
-/* PREVIEW IMAGE */
 .preview {
-    margin: 10px 0;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #334155;
 }
 
 .preview img {
@@ -97,142 +68,124 @@ h1 {
     object-position: top;
 }
 
+.label {
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+.value {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.payout {
+    color: #22c55e;
+    font-weight: bold;
+    font-size: 18px;
+}
+
 a {
     color: #38bdf8;
     text-decoration: none;
+    font-size: 16px;
 }
 </style>
 
 </head>
+
 <body>
 
 <h1>🔥 Offer Wall</h1>
 
-<input type="text" id="search" placeholder="Search offers...">
-
 <div id="offers"></div>
 
 <script>
+
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRumI4oP83FrT13OLris4jnzpz8VuLtCvkZDcTlb9364hTvdruRWTthnyOb0o9VfiyzLvXgFiUgBtrQ/pub?gid=0&single=true&output=csv";
 
-let allData = [];
+// 🔥 Convert Gyazo → Direct Image
+function getGyazoImage(url) {
+    if (url.includes("gyazo.com")) {
+        const id = url.split("/").pop().split("?")[0];
+        return `https://i.gyazo.com/${id}.png`;
+    }
+    return url;
+}
 
-// FETCH DATA
 fetch(sheetURL)
 .then(res => res.text())
 .then(data => {
 
-    const rows = data.split("\n");
-
-    const headers = rows[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.trim());
-
-    allData = rows.slice(1).map(row => {
-        if (!row.trim()) return null;
-
-        const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-
-        let obj = {};
-        headers.forEach((header, i) => {
-            obj[header] = cols[i] ? cols[i].replace(/^"|"$/g, '') : "";
-        });
-
-        return {
-            category: obj["Category Name"] || "Other",
-            id: obj["Offer ID"] || "",
-            name: obj["Offer Name"] || "",
-            payout: obj["Payout"] || "",
-            link: obj["Preview Link"] || "#",
-            geo: obj["Countries or GEOs"] || ""
-        };
-    }).filter(Boolean);
-
-    renderData(allData);
-});
-
-
-// RENDER
-function renderData(data) {
+    const rows = data.trim().split("\n").slice(1);
     const container = document.getElementById("offers");
 
-    const grouped = {};
+    let categories = {};
 
-    data.forEach(offer => {
-        const cat = offer.category || "Other";
-        if (!grouped[cat]) grouped[cat] = [];
-        grouped[cat].push(offer);
+    rows.forEach(row => {
+        const cols = row.split(",");
+
+        const category = cols[0];
+        const offerID = cols[1];
+        const offerName = cols[2];
+        const payout = cols[3];
+        const preview = cols[4];
+        const geo = cols[5];
+
+        const previewImage = getGyazoImage(preview);
+
+        if (!categories[category]) {
+            categories[category] = [];
+        }
+
+        categories[category].push(`
+        <div class="card">
+
+            <div class="title">${offerName}</div>
+
+            <div class="preview">
+                <img src="${previewImage}" 
+                     onerror="this.src='https://via.placeholder.com/600x300?text=No+Preview'">
+            </div>
+
+            <div class="label">Offer ID</div>
+            <div class="value">${offerID}</div>
+
+            <div class="label">Payout</div>
+            <div class="payout">$${payout}</div>
+
+            <div class="label">Countries or GEOs</div>
+            <div class="value">${geo}</div>
+
+            <div class="label">Preview Link</div>
+            <a href="${preview}" target="_blank">View Offer</a>
+
+        </div>
+        `);
     });
 
-    let html = "";
-
-    for (let category in grouped) {
-
-        html += `
+    for (let category in categories) {
+        container.innerHTML += `
         <div class="category">
+
             <div class="category-header" onclick="toggleCategory(this)">
-                ${category} (${grouped[category].length})
-                <span>+</span>
+                ${category}
             </div>
 
             <div class="category-content">
-        `;
-
-        grouped[category].forEach(offer => {
-
-            const previewImage = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(offer.link)}?w=600`;
-
-            html += `
-            <div class="offer">
-
-                <div class="title">${offer.name}</div>
-
-                <div class="preview">
-                    <a href="${offer.link}" target="_blank">
-                        <img src="${previewImage}" alt="Preview">
-                    </a>
-                </div>
-
-                <div><span class="label">Offer ID:</span> ${offer.id}</div>
-                <div><span class="label">Payout:</span> <span class="payout">$${offer.payout}</span></div>
-                <div><span class="label">Countries or GEOs:</span> ${offer.geo}</div>
-
+                ${categories[category].join("")}
             </div>
-            `;
-        });
 
-        html += `</div></div>`;
+        </div>
+        `;
     }
 
-    container.innerHTML = html;
-}
+});
 
-
-// TOGGLE
 function toggleCategory(el) {
     const content = el.nextElementSibling;
-    const icon = el.querySelector("span");
-
-    if (content.style.display === "block") {
-        content.style.display = "none";
-        icon.innerText = "+";
-    } else {
-        content.style.display = "block";
-        icon.innerText = "−";
-    }
+    content.style.display = content.style.display === "block" ? "none" : "block";
 }
 
-
-// SEARCH
-document.getElementById("search").addEventListener("input", function() {
-    const value = this.value.toLowerCase();
-
-    const filtered = allData.filter(o =>
-        o.name.toLowerCase().includes(value) ||
-        o.id.toLowerCase().includes(value) ||
-        o.geo.toLowerCase().includes(value)
-    );
-
-    renderData(filtered);
-});
 </script>
 
 </body>
