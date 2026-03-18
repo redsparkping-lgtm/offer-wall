@@ -27,7 +27,7 @@ h1 {
     font-size: 14px;
 }
 
-/* CATEGORY BLOCK */
+/* CATEGORY */
 .category {
     margin-bottom: 20px;
     border-radius: 10px;
@@ -35,7 +35,6 @@ h1 {
     background: #1e293b;
 }
 
-/* HEADER */
 .category-header {
     padding: 15px;
     font-size: 18px;
@@ -44,22 +43,20 @@ h1 {
     background: #334155;
     display: flex;
     justify-content: space-between;
-    align-items: center;
 }
 
 .category-header:hover {
     background: #475569;
 }
 
-/* CONTENT */
 .category-content {
     display: none;
     padding: 15px;
 }
 
-/* OFFER ITEM */
+/* OFFER */
 .offer {
-    padding: 12px;
+    padding: 15px;
     border-bottom: 1px solid #334155;
 }
 
@@ -67,14 +64,38 @@ h1 {
     border-bottom: none;
 }
 
+.title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
 .label {
-    font-size: 12px;
-    opacity: 0.7;
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.offer div {
+    margin-bottom: 6px;
 }
 
 .payout {
     color: #22c55e;
     font-weight: bold;
+    font-size: 16px;
+}
+
+/* PREVIEW IMAGE */
+.preview {
+    margin: 10px 0;
+}
+
+.preview img {
+    width: 100%;
+    max-height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #334155;
 }
 
 a {
@@ -130,7 +151,7 @@ fetch(sheetURL)
 });
 
 
-// RENDER CATEGORY + OFFERS
+// RENDER
 function renderData(data) {
     const container = document.getElementById("offers");
 
@@ -138,7 +159,6 @@ function renderData(data) {
 
     data.forEach(offer => {
         const cat = offer.category || "Other";
-
         if (!grouped[cat]) grouped[cat] = [];
         grouped[cat].push(offer);
     });
@@ -158,13 +178,24 @@ function renderData(data) {
         `;
 
         grouped[category].forEach(offer => {
+
+            const previewImage = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(offer.link)}?w=600`;
+
             html += `
             <div class="offer">
-                <div><span class="label">Offer Name:</span> ${offer.name}</div>
+
+                <div class="title">${offer.name}</div>
+
+                <div class="preview">
+                    <a href="${offer.link}" target="_blank">
+                        <img src="${previewImage}" alt="Preview">
+                    </a>
+                </div>
+
                 <div><span class="label">Offer ID:</span> ${offer.id}</div>
                 <div><span class="label">Payout:</span> <span class="payout">$${offer.payout}</span></div>
-                <div><span class="label">Preview Link:</span> <a href="${offer.link}" target="_blank">View Offer</a></div>
                 <div><span class="label">Countries or GEOs:</span> ${offer.geo}</div>
+
             </div>
             `;
         });
@@ -176,7 +207,7 @@ function renderData(data) {
 }
 
 
-// TOGGLE CATEGORY
+// TOGGLE
 function toggleCategory(el) {
     const content = el.nextElementSibling;
     const icon = el.querySelector("span");
@@ -191,7 +222,7 @@ function toggleCategory(el) {
 }
 
 
-// SEARCH FUNCTION
+// SEARCH
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase();
 
